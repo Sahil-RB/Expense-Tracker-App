@@ -69,7 +69,7 @@ def add_user(current_user):
 	u.set_password(password)
 	db.session.add(u)
 	db.session.commit()
-	return jsonify({'message':'User '+username+' created'})
+	return jsonify({'message':'User '+username+' created'}), 201
 
 
 

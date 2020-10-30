@@ -1,0 +1,26 @@
+Pip modules reqd:
+	pip install Pyjwt
+	pip install Flask
+	pip install Flask-SQLAlchemy
+	pip install requests
+
+to start the server, use the following in cmd in the top level directory
+set FLASK_APP=proj.py
+flask run
+
+Endpoints:
+1. '/login'
+	request type: POST
+	required header fields: 'username', 'password'
+	If successful, returns an access token, with 200 resp. Else, returns error code along with error 'message' field.
+
+2. '/check_auth'
+	request type: GET
+	required header fields: 'access_token'
+	debugging function, returns Username along with success if appropriate token supplied, else error code along with error 'message' field.
+
+3. '/add_user'
+	request type: POST
+	required header fields: 'access_token', 'username', 'password', 'admin' -> other than the token, fields are of the user to be added.
+				set admin to 'True' if new user is to have admin rights. 
+	returns 201 if user created, else error code with error 'message' field. 
