@@ -41,7 +41,7 @@ def login():
 			return jsonify({'message':'Incorrect Password'}), 401
 		else:
 			token = jwt.encode({'id':user.id, 'exp':datetime.datetime.now() + datetime.timedelta(minutes=30)}, app.config['SECRET_KEY'])
-			return jsonify({'message':'Login Succesful!', 'token':token.decode('UTF-8')})
+			return jsonify({'message':'Login Succesful!', 'token':token.decode('UTF-8'), 'isAdmin':user.admin})
 
 
 @app.route('/check_auth', methods = ['GET'])
@@ -51,10 +51,7 @@ def check_auth(current_user):
 
 
 @app.route('/add_user', methods = ['POST'])
-@token_required
-def add_user(current_user):
-	if not current_user.admin:
-		return jsonify({'message':'Admin access required!'}), 401
+def add_user():
 	username = request.headers.get('username')
 	password = request.headers.get('password')
 	admin = request.headers.get('admin')
