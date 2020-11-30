@@ -24,3 +24,28 @@ Endpoints:
 	required header fields: 'access_token', 'username', 'password', 'admin' -> other than the token, fields are of the user to be added.
 				set admin to 'True' if new user is to have admin rights. 
 	returns 201 if user created, else error code with error 'message' field. 
+
+4. '/add_expense'
+	request type: POST
+	required header fields: 'access_token'
+	required parameters: 'category' of the expense and 'amount'. 'date' and 'private' are optional, if not provided, date is set as the current date and private is set to False
+	returns 201 if expense added, else returns error code with 'message' field.
+
+5. '/add_income'
+	request type: POST
+	required header fields: 'access_token'
+	required parameters: 'source' and 'amount'. 'date' is optional and is set as current date by default
+	returns 201 if expense added, else returns error code with 'message' field. 
+
+6. '/month_exp'
+	request type: GET
+	required header fields: 'access_token'
+	returns the list of expenses that the user has logged in the current month in the 'ans' field as well as sum of these expenses in 'total' field.
+		each index of the 'ans' field contains a json dict corresponding to one expense with 'date', 'category', and 'amount' values
+	
+7. 'month_inc'
+	request type: GET
+	required header fields: 'access_token'
+	returns the list of incomes that the user has logged in the current month in the 'ans' field as well as sum of these incomes in 'total' field.
+		each index of the 'ans' field contains a json dict corresponding to one income with 'date', 'source', and 'amount' values
+
