@@ -27,7 +27,9 @@ class Expense(db.Model):
 	date = db.Column(db.DateTime, index=True, default=date.today())
 	user_id = db.Column(db.Integer, db.ForeignKey('user.id'))
 	private = db.Column(db.Boolean, default=False)
-
+	
+	def __repr__(self):
+		return f"Id: {self.id}, Date:{self.date}"
 
 class Income(db.Model):
 	id = db.Column(db.Integer, primary_key=True)

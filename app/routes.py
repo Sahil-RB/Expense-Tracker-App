@@ -1,10 +1,10 @@
 from app import app, db
-import datetime
 from flask import request, jsonify
 from functools import wraps
 from app.models import User, Expense, Income
 import jwt
 from datetime import date
+from datetime import datetime
 from calendar import monthrange
 
 def token_required(f):
@@ -103,30 +103,64 @@ def add_income(current_user):
 	db.session.commit()
 	return jsonify({'message':'Income added'}), 201
 
+def retExp(current_user):
+	from_date = datetime(year=datetime.now().year, month=datetime.now().month, day=1)
+	current_month_expenses = Expense.query.filter_by(user_id=current_user.id).filter(Expense.date >= from_date).filter(Expense.date <= datetime.now()).all()
+	return current_month_expenses
+
+
 @app.route('/month_exp', methods = ['GET'])
 @token_required
 def month_exp(current_user):
-	cur = date.today()
-	first_day_of_month = cur.replace(day = monthrange(cur.year, cur.month)[0])
-	last_day_of_month = cur.replace(day = monthrange(cur.year, cur.month)[1])
 	ret = []
 	total = 0
-	for exp in Expense.query.filter(Expense.user_id == current_user.id and Expense.date >= first_day_of_month and Expense.date <= last_day_of_month).all():
+	for exp in retExp(current_user):
 		ret.append({'date':exp.date.date(), 'category':exp.category, 'amount':exp.amount})
-		total += exp.amout
+		total += exp.amount
 	return jsonify({'message':'succesful', 'ans':ret, 'total':total}), 200
+
+def retInc(current_user):
+	from_date = datetime(year=datetime.now().year, month=datetime.now().month, day=1)
+	current_month_incomes = Income.query.filter_by(user_id=current_user.id).filter(Expense.date >= from_date).filter(Expense.date <= datetime.now()).all()
+	return current_month_incomes
 
 @app.route('/month_inc', methods = ['GET'])
 @token_required
 def month_inc(current_user):
-	cur = date.today()
-	first_day_of_month = cur.replace(day = monthrange(cur.year, cur.month)[0])
-	last_day_of_month = cur.replace(day = monthrange(cur.year, cur.month)[1])
 	ret = []
 	total = 0
-	for inc in Income.query.filter(Income.user_id == current_user.id and Income.date >= first_day_of_month and Income.date <= last_day_of_month).all():
+	for inc in retInc(current_user):
 		ret.append({'date':inc.date.date(), 'source':inc.source, 'amount':inc.amount})
 		total += inc.amount
 	return jsonify({'message':'succesful', 'ans':ret, 'total':total}), 200
 
+@app.route('/exp_split', methods = ['GET'])
+@token_required
+def exp_split(current_user):
+	l = db.session.query(Expense.category, db.func.sum(Expense.amount)).filter(Expense.user_id == current_user.id).group_by(Expense.category).all()
+	total = db.session.query(db.func.sum(Expense.amount)).filter(Expense.user_id == current_user.id).all()[0][0]
+	cur = 0
+	ret = []
+	for i in range(len(l)-1):
+		val = round(l[i][1]*100/total,2)
+		cur += val
+		ret.append({'y':val, 'label':l[i][0]})
+	val = 100-cur
+	ret.append({'y':val, 'label':l[-1][0]})
+	return jsonify({'message':'succesful', 'ans':ret}), 200
 
+
+@app.route('/inc_split', methods = ['GET'])
+@token_required
+def inc_split(current_user):
+	l = db.session.query(Income.source, db.func.sum(Income.amount)).filter(Income.user_id == current_user.id).group_by(Income.souce).all()
+	total = db.session.query(db.func.sum(Expense.amount)).filter(Expense.user_id == current_user.id).all()[0][0]
+	cur = 0
+	ret = []
+	for i in range(len(l)-1):
+		l[i][1] = round(l[i][1]*100/total,2)
+		cur += l[i][1]
+		ret.append({'y':l[i][1], 'label':l[i][0]})
+	l[-1][1] = 100-cur
+	ret.append({'y':l[-1][1], 'label':l[-1][0]})
+	return jsonify({'message':'succesful', 'ans':ret}), 200
