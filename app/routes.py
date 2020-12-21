@@ -3,10 +3,10 @@ from flask import request, jsonify
 from functools import wraps
 from app.models import User, Expense, Income
 import jwt
-import datetime
 from datetime import date
+from datetime import datetime
 from calendar import monthrange
-
+from datetime import timedelta
 def token_required(f):
 	@wraps(f)
 	def decorated(*args, **kwargs):
@@ -25,7 +25,7 @@ def token_required(f):
 	return decorated
 
 
-@app.route('/login', methods = ['POST'])
+@app.route('/login', methods = ['POST']) #logs in a user by validating and returning token
 def login():
 	username = request.headers.get('username')
 	password = request.headers.get('password')
@@ -40,17 +40,17 @@ def login():
 		if not user.check_password(password):
 			return jsonify({'message':'Incorrect Password'}), 401
 		else:
-			token = jwt.encode({'id':user.id, 'exp':datetime.datetime.now() + datetime.timedelta(minutes=30)}, app.config['SECRET_KEY'])
+			token = jwt.encode({'id':user.id, 'exp':datetime.now() + timedelta(minutes=30)}, app.config['SECRET_KEY'])
 			return jsonify({'message':'Login Succesful!', 'token':token.decode('UTF-8'), 'isAdmin':user.admin})
 
 
 @app.route('/check_auth', methods = ['GET'])
 @token_required
-def check_auth(current_user):
+def check_auth(current_user):  #debugging function to check for log in
 	return jsonify({'message':'Succesful', 'Current user.username':current_user.username})
 
 
-@app.route('/add_user', methods = ['POST'])
+@app.route('/add_user', methods = ['POST']) #user registration
 def add_user():
 	username = request.headers.get('username')
 	password = request.headers.get('password')
@@ -69,7 +69,7 @@ def add_user():
 	return jsonify({'message':'User '+username+' created'}), 201
 
 
-@app.route('/add_expense', methods = ['POST'])
+@app.route('/add_expense', methods = ['POST'])  #add expense for currently logged in user
 @token_required
 def add_expense(current_user):
 	category = request.args.get('category')
@@ -88,7 +88,7 @@ def add_expense(current_user):
 	return jsonify({'message':'Expense added'}), 201
 
 
-@app.route('/add_income', methods = ['POST'])
+@app.route('/add_income', methods = ['POST']) #add income for currently logged in user
 @token_required
 def add_income(current_user):
 	source = request.args.get('source')
@@ -103,13 +103,13 @@ def add_income(current_user):
 	db.session.commit()
 	return jsonify({'message':'Income added'}), 201
 
-def retExp(current_user):
-	from_date = datetime(year=datetime.now().year, month=datetime.datetime.now().month, day=1)
+def retExp(current_user):  #performs sql query for cur month expenses
+	from_date = datetime(year=datetime.now().year, month=datetime.now().month, day=1)
 	current_month_expenses = Expense.query.filter_by(user_id=current_user.id).filter(Expense.date >= from_date).filter(Expense.date <= datetime.now()).all()
 	return current_month_expenses
 
 
-@app.route('/month_exp', methods = ['GET'])
+@app.route('/month_exp', methods = ['GET']) #returns all expenses of the current month for user
 @token_required
 def month_exp(current_user):
 	ret = []
@@ -119,12 +119,12 @@ def month_exp(current_user):
 		total += exp.amount
 	return jsonify({'message':'succesful', 'ans':ret, 'total':total}), 200
 
-def retInc(current_user):
-	from_date = datetime(year=datetime.now().year, month=datetime.datetime.now().month, day=1)
-	current_month_incomes = Income.query.filter_by(user_id=current_user.id).filter(Expense.date >= from_date).filter(Expense.date <= datetime.now()).all()
+def retInc(current_user): #performs sql query for current month incomes
+	from_date = datetime(year=datetime.now().year, month=datetime.now().month, day=1)
+	current_month_incomes = Income.query.filter_by(user_id=current_user.id).filter(Income.date >= from_date).filter(Income.date <= datetime.now()).all()
 	return current_month_incomes
 
-@app.route('/month_inc', methods = ['GET'])
+@app.route('/month_inc', methods = ['GET']) #returns all incomes of the current month for user
 @token_required
 def month_inc(current_user):
 	ret = []
@@ -134,7 +134,7 @@ def month_inc(current_user):
 		total += inc.amount
 	return jsonify({'message':'succesful', 'ans':ret, 'total':total}), 200
 
-@app.route('/exp_split', methods = ['GET'])
+@app.route('/exp_split', methods = ['GET'])  #expenses grouped by category
 @token_required
 def exp_split(current_user):
 	l = db.session.query(Expense.category, db.func.sum(Expense.amount)).filter(Expense.user_id == current_user.id).group_by(Expense.category).all()
@@ -150,7 +150,7 @@ def exp_split(current_user):
 	return jsonify({'message':'succesful', 'ans':ret}), 200
 
 
-@app.route('/inc_split', methods = ['GET'])
+@app.route('/inc_split', methods = ['GET'])  # incomes grouped by category
 @token_required
 def inc_split(current_user):
 	l = db.session.query(Income.source, db.func.sum(Income.amount)).filter(Income.user_id == current_user.id).group_by(Income.souce).all()
