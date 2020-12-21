@@ -3,8 +3,8 @@ from flask import request, jsonify
 from functools import wraps
 from app.models import User, Expense, Income
 import jwt
+import datetime
 from datetime import date
-from datetime import datetime
 from calendar import monthrange
 
 def token_required(f):
@@ -104,7 +104,7 @@ def add_income(current_user):
 	return jsonify({'message':'Income added'}), 201
 
 def retExp(current_user):
-	from_date = datetime(year=datetime.now().year, month=datetime.now().month, day=1)
+	from_date = datetime(year=datetime.now().year, month=datetime.datetime.now().month, day=1)
 	current_month_expenses = Expense.query.filter_by(user_id=current_user.id).filter(Expense.date >= from_date).filter(Expense.date <= datetime.now()).all()
 	return current_month_expenses
 
@@ -120,7 +120,7 @@ def month_exp(current_user):
 	return jsonify({'message':'succesful', 'ans':ret, 'total':total}), 200
 
 def retInc(current_user):
-	from_date = datetime(year=datetime.now().year, month=datetime.now().month, day=1)
+	from_date = datetime(year=datetime.now().year, month=datetime.datetime.now().month, day=1)
 	current_month_incomes = Income.query.filter_by(user_id=current_user.id).filter(Expense.date >= from_date).filter(Expense.date <= datetime.now()).all()
 	return current_month_incomes
 
