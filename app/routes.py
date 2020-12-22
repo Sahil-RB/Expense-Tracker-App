@@ -191,10 +191,9 @@ def exp_list(current_user):
 	ret = []
 	total = 0
 	from_date = datetime(year=datetime.now().year, month=datetime.now().month, day=1)
-	for exp in Expense.query.filter_by(id=u.id).filter(Expense.date >= from_date).filter(Expense.date <= datetime.now()).filter(Expense.private==False).all():
-		if not exp.private:
-			ret.append({'date':exp.date.date(), 'category':exp.category, 'amount':exp.amount})
-			total += exp.amount
+	for exp in Expense.query.filter_by(user_id=u.id).filter(Expense.date >= from_date).filter(Expense.date <= datetime.now()).filter(Expense.private==False).all():
+		ret.append({'date':exp.date.date(), 'category':exp.category, 'amount':exp.amount})
+		total += exp.amount
 	return jsonify({'message':'succesful', 'ans':ret, 'total':total}), 200
 
 
@@ -212,7 +211,7 @@ def inc_list(current_user, name):
 	ret = []
 	total = 0
 	from_date = datetime(year=datetime.now().year, month=datetime.now().month, day=1)
-	for inc in Income.query.filter_by(id=u.id).filter(Income.date >= from_date).filter(Income.date <= datetime.now()).all():
+	for inc in Income.query.filter_by(user_id=u.id).filter(Income.date >= from_date).filter(Income.date <= datetime.now()).all():
 		ret.append({'date':inc.date.date(), 'source':inc.source, 'amount':inc.amount})
 		total += inc.amount
 	return jsonify({'message':'succesful', 'ans':ret, 'total':total}), 200
