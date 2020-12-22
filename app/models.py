@@ -37,3 +37,5 @@ class Income(db.Model):
 	amount = db.Column(db.Float)
 	date = db.Column(db.DateTime, index=True, default=date.today())
 	user_id = db.Column(db.Integer, db.ForeignKey('user.id'))
+	def __repr__(self):
+		return f"Id: {self.id}, Date:{self.date}"

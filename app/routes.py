@@ -153,14 +153,14 @@ def exp_split(current_user):
 @app.route('/inc_split', methods = ['GET'])  # incomes grouped by category
 @token_required
 def inc_split(current_user):
-	l = db.session.query(Income.source, db.func.sum(Income.amount)).filter(Income.user_id == current_user.id).group_by(Income.souce).all()
-	total = db.session.query(db.func.sum(Expense.amount)).filter(Expense.user_id == current_user.id).all()[0][0]
+	l = db.session.query(Income.source, db.func.sum(Income.amount)).filter(Income.user_id == current_user.id).group_by(Income.source).all()
+	total = db.session.query(db.func.sum(Income.amount)).filter(Income.user_id == current_user.id).all()[0][0]
 	cur = 0
 	ret = []
 	for i in range(len(l)-1):
-		l[i][1] = round(l[i][1]*100/total,2)
-		cur += l[i][1]
-		ret.append({'y':l[i][1], 'label':l[i][0]})
-	l[-1][1] = 100-cur
-	ret.append({'y':l[-1][1], 'label':l[-1][0]})
+		val = round(l[i][1]*100/total,2)
+		cur += val 
+		ret.append({'y':val, 'label':l[i][0]})
+	val = 100-cur
+	ret.append({'y':val, 'label':l[-1][0]})
 	return jsonify({'message':'succesful', 'ans':ret}), 200
