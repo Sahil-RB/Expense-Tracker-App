@@ -177,11 +177,14 @@ def user_list(current_user):
 			ret.append(u.username)
 	return jsonify({'ans':ret, 'message':'Succesful'}), 200
 
-@app.route('/exp_list/<name>', methods = ['GET'])
+@app.route('/exp_list', methods = ['GET'])
 @token_required
-def exp_list(current_user, name):
+def exp_list(current_user):
 	if not current_user.admin:
 		return jsonify({'message':'Only for admin users'}), 401
+	name = request.headers.get('name')
+	if not name:
+		return jsonify({'message':'Insufficient parameters'}), 400
 	u = User.query.filter(User.username==name).first()
 	if not u:
 		return jsonify({'message':'User not found'}), 404
@@ -195,11 +198,14 @@ def exp_list(current_user, name):
 	return jsonify({'message':'succesful', 'ans':ret, 'total':total}), 200
 
 
-@app.route('/inc_list/<name>', methods = ['GET'])
+@app.route('/inc_list', methods = ['GET'])
 @token_required
 def inc_list(current_user, name):
 	if not current_user.admin:
 		return jsonify({'message':'Only for admin users'}), 401
+	name = request.headers.get('name')
+	if not name:
+		return jsonify({'message':'Insufficient parameters'}), 400
 	u = User.query.filter(User.username==name).first()
 	if not u:
 		return jsonify({'message':'User not found'}), 404
