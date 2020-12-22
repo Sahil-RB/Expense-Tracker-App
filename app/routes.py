@@ -144,9 +144,9 @@ def exp_split(current_user):
 	for i in range(len(l)-1):
 		val = round(l[i][1]*100/total,2)
 		cur += val
-		ret.append({'y':val, 'label':l[i][0]})
+		ret.append({'value':val, 'title':l[i][0]})
 	val = 100-cur
-	ret.append({'y':val, 'label':l[-1][0]})
+	ret.append({'value':val, 'title':l[-1][0]})
 	return jsonify({'message':'succesful', 'ans':ret}), 200
 
 
@@ -160,7 +160,54 @@ def inc_split(current_user):
 	for i in range(len(l)-1):
 		val = round(l[i][1]*100/total,2)
 		cur += val 
-		ret.append({'y':val, 'label':l[i][0]})
+		ret.append({'value':val, 'title':l[i][0]})
 	val = 100-cur
-	ret.append({'y':val, 'label':l[-1][0]})
+	ret.append({'value':val, 'title':l[-1][0]})
 	return jsonify({'message':'succesful', 'ans':ret}), 200
+
+@app.route('/user_list', methods=['GET']) # returns a list of names of non admin users
+@token_required
+def user_list(current_user):
+	if not current_user.admin:
+		return jsonify({'message':'Only for admin users'}), 401
+	l = User.query.all()
+	ret = []
+	for u in l:
+		if not u.admin:
+			ret.append(u.username)
+	return jsonify({'ans':ret, 'message':'Succesful'}), 200
+
+@app.route('/exp_list/<name>', methods = ['GET'])
+@token_required
+def exp_list(current_user, name):
+	if not current_user.admin:
+		return jsonify({'message':'Only for admin users'}), 401
+	u = User.query.filter(User.username==name).first()
+	if not u:
+		return jsonify({'message':'User not found'}), 404
+	ret = []
+	total = 0
+	from_date = datetime(year=datetime.now().year, month=datetime.now().month, day=1)
+	for exp in Expense.query.filter_by(id=u.id).filter(Expense.date >= from_date).filter(Expense.date <= datetime.now()).filter(Expense.private==False).all():
+		if not exp.private:
+			ret.append({'date':exp.date.date(), 'category':exp.category, 'amount':exp.amount})
+			total += exp.amount
+	return jsonify({'message':'succesful', 'ans':ret, 'total':total}), 200
+
+
+@app.route('/inc_list/<name>', methods = ['GET'])
+@token_required
+def inc_list(current_user, name):
+	if not current_user.admin:
+		return jsonify({'message':'Only for admin users'}), 401
+	u = User.query.filter(User.username==name).first()
+	if not u:
+		return jsonify({'message':'User not found'}), 404
+	ret = []
+	total = 0
+	from_date = datetime(year=datetime.now().year, month=datetime.now().month, day=1)
+	for inc in Income.query.filter_by(id=u.id).filter(Income.date >= from_date).filter(Income.date <= datetime.now()).all():
+		ret.append({'date':inc.date.date(), 'source':inc.source, 'amount':inc.amount})
+		total += inc.amount
+	return jsonify({'message':'succesful', 'ans':ret, 'total':total}), 200
+

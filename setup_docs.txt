@@ -49,3 +49,28 @@ Endpoints:
 	returns the list of incomes that the user has logged in the current month in the 'ans' field as well as sum of these incomes in 'total' field.
 		each index of the 'ans' field contains a json dict corresponding to one income with 'date', 'source', and 'amount' values
 
+8. '/exp_split'
+	request type: GET
+	required header fields: 'access_token'
+	returns expenses split by category with % for each
+
+9. '/inc_split'
+	request type: GET	
+	required header fields: 'access_token'
+	returns incomes split by source with % for each
+
+10. '/user_list'
+	request type: GET
+	required header fields: 'access_token'
+	returns a list of names of all non-admin users 
+
+11. '/exp_list/<name>'
+	request type: GET
+	required header fields: 'access_token' 
+	returns list of non private expenses made in this month by user with username = name
+
+12. '/inc_list/<name>'
+	request type: GET
+	required header fields: 'access_token' 
+	returns list of incomes earned in this month by user with username = name
+ 
